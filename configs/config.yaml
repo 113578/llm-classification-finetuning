@@ -9,7 +9,7 @@ in_features: 1152
 num_classes: 3
 lr: 1e-3
 
-device: 'cuda'
+device: "cuda"
 random_state: 23
 
 output_file: $state_dicts/{.data.batch_size}_${.model.type}.pth

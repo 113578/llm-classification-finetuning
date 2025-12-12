@@ -1,6 +1,5 @@
 import shutil
 
-import fire
 import kagglehub
 
 

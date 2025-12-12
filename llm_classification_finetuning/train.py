@@ -9,7 +9,7 @@ from llm_classification_finetuning.models import LogisticRegression, DeepMLP
 from llm_classification_finetuning.model_module import LCFModelModule
 
 
-@hydra.main(version_base=None, config_path="../conf", config_name="config")
+@hydra.main(version_base=None, config_path="../configs", config_name="config")
 def train(cfg: DictConfig):
     datamodule = LCFDataModule(
         file_path=cfg.data.file_path,
