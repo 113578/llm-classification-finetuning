@@ -2,5 +2,11 @@
 
 import fire
 
+from llm_classification_finetuning.data import download_data
+
 if __name__ == '__main__':
-    fire.Fire()
+    fire.Fire(
+        component={
+            'download_data': download_data,
+        }
+    )

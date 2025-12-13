@@ -2,7 +2,7 @@
 
 ## Постановка задачи
 
-Необходимо обучить модель для предсказания ответа, который предпочёл пользователь в рамках соревнования двух моделей на Chatbot Arena. Подробно с задачей можно ознакомиться ![здесь](https://www.kaggle.com/competitions/llm-classification-finetuning/overview).
+Необходимо обучить модель для предсказания ответа, который предпочёл пользователь в рамках соревнования двух моделей на Chatbot Arena. Подробно с задачей можно ознакомиться [здесь](https://www.kaggle.com/competitions/llm-classification-finetuning/overview).
 
 ### Формат входных и выходных данных
 
@@ -28,7 +28,7 @@
 
 Особенностью данных является их структура - это текстовые данные, поэтому, прежде чем с ними работать, их придётся трансформировать в векторное представление.
 
-Данные находятся ![здесь](https://www.kaggle.com/competitions/llm-classification-finetuning/data?select=train.csv).
+Данные находятся [здесь](https://www.kaggle.com/competitions/llm-classification-finetuning/data?select=train.csv).
 
 ## Моделирование
 
@@ -58,7 +58,7 @@
 
 # Train
 
-Для версионирования данных в проекте используется dvc с локальным хранилищем, поэтому прежде чем запустить тренировку необходимо скачать данные, для этого можно воспользоваться командой `uv run commands.py --dataset_url a63768/llm-classification-finetuning --target_dir data/`.
+Для версионирования данных в проекте используется dvc с локальным хранилищем, поэтому прежде чем запустить тренировку необходимо скачать данные, для этого можно воспользоваться командой `uv run commands.py download_data --dataset_url 'a63768/llm-classification-finetuning' --target_dir 'data/'`.
 
 Для запуска обучения модели используется команда `uv run llm_classification_finetuning/train.py`, по окончанию обучения сохранится state dict модели вместе с логами, расположение которых указано в конфигуациях проекта.
 
