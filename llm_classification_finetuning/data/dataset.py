@@ -1,46 +1,53 @@
-import pandas as pd
+"""Модуль с реализацией Dataset для тензорных embeddings и опциональных меток."""
+
 import torch
 from torch.utils.data import Dataset
-from sentence_transformers import SentenceTransformer
 
 
 class LCFDataset(Dataset):
-    def __init__(self, df: pd.DataFrame, encoder_name: str, device: str):
-        self.df = df
-        self.encoder = SentenceTransformer(
-            model_name_or_path=encoder_name, device=device
-        )
+    """
+    Простой Dataset, оборачивающий embedding'и и опциональные метки.
 
-        prompts = self.encoder.encode(
-            sentences=self.df["prompt"].to_list(),
-            prompt="prompt",
-            convert_to_tensor=True,
-            device=device,
-        )
-        responses_a = self.encoder.encode(
-            sentences=self.df["response_a"].to_list(),
-            prompt="response",
-            convert_to_tensor=True,
-            device=device,
-        )
-        responses_b = self.encoder.encode(
-            sentences=self.df["response_b"].to_list(),
-            prompt="prompt",
-            convert_to_tensor=True,
-            device=device,
-        )
+    Parameters
+    ----------
+    embeddings : torch.Tensor
+        Матрица embedding'ов (N x D).
+    labels : torch.Tensor | None
+        Метки в виде тензора длины N, или None (только embeddings).
+    """
 
-        self.embeddings = torch.concatenate(
-            tensors=[prompts, responses_a, responses_b], axis=1
-        )
-        self.labels = torch.tensor(
-            data=self.df[["winner_model_a", "winner_model_b", "winner_tie"]].values,
-            dtype=torch.long,
-        )
-        self.labels = torch.argmax(input=self.labels, dim=1)
+    def __init__(self, embeddings: torch.Tensor, labels: torch.Tensor | None = None):
+        self.embeddings = embeddings
+        self.labels = labels
 
-    def __len__(self):
-        return len(self.df)
+    def __len__(self) -> int:
+        """
+        Возвращает количество примеров (N).
 
-    def __getitem__(self, index: int):
-        return self.embeddings[index], self.labels[index]
+        Returns
+        -------
+        int
+            Число примеров.
+        """
+        return self.embeddings.size(dim=0)
+
+    def __getitem__(self, index: int) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
+        """
+        Возвращает embeddings или (embeddings, label) для заданного индекса.
+
+        Parameters
+        ----------
+        index : int
+            Индекс элемента.
+
+        Returns
+        -------
+        torch.Tensor | tuple[torch.Tensor, torch.Tensor]
+            embeddings либо кортеж (embeddings, label).
+        """
+        embeddings = self.embeddings[index]
+
+        if self.labels is None:
+            return embeddings
+
+        return embeddings, self.labels[index]
