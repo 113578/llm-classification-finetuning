@@ -1,6 +1,8 @@
-file_path: data/sample.csv
+train_file_path: data/sample.csv
+pred_file_path: data/test.csv
 encoder_name: sentence-transformers/all-MiniLM-L6-v2
-batch_size: 128
-train_size: 0.6
+batch_size: 256
+train_size: 0.8
 val_size: 0.2
-test_size: 0.2
+num_workers: 9
+encoder_batch_size: 256
