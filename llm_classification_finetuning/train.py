@@ -4,11 +4,13 @@
 датамодуль, модель и запускает обучение с логированием в TensorBoard и MLflow.
 """
 
-import hydra
+from pathlib import Path
+
+import fire
 import lightning as L
 import torch
+from hydra import compose, initialize
 from lightning.pytorch.loggers import MLFlowLogger, TensorBoardLogger
-from omegaconf import DictConfig
 
 from llm_classification_finetuning.data import LCFDataModule
 from llm_classification_finetuning.models import (
@@ -18,8 +20,7 @@ from llm_classification_finetuning.models import (
 )
 
 
-@hydra.main(version_base=None, config_path='../configs', config_name='config')
-def train(cfg: DictConfig) -> None:
+def train() -> None:
     """
     Запускает процесс обучения модели.
 
@@ -32,48 +33,56 @@ def train(cfg: DictConfig) -> None:
     -------
     None
     """
-    datamodule = LCFDataModule(
-        train_file_path=cfg.data.train_file_path,
-        pred_file_path=cfg.data.pred_file_path,
-        encoder_name=cfg.data.encoder_name,
-        batch_size=cfg.data.batch_size,
-        train_size=cfg.data.train_size,
-        val_size=cfg.data.val_size,
-        device=cfg.device,
-        random_state=cfg.random_state,
-        num_workers=cfg.data.num_workers,
-        encoder_batch_size=cfg.data.encoder_batch_size,
-    )
+    with initialize(config_path='../configs', version_base=None):
+        cfg = compose(config_name='config')
 
-    if cfg.model.type == 'baseline':
-        model = LogisticRegression(in_features=cfg.in_features, num_classes=cfg.num_classes)
-    elif cfg.model.type == 'deep_mlp':
-        model = DeepMLP(
-            in_features=cfg.in_features,
-            num_classes=cfg.num_classes,
-            hidden_dim=cfg.model.hidden_dim,
-            depth=cfg.model.depth,
+        datamodule = LCFDataModule(
+            train_file_path=cfg.data.train_file_path,
+            pred_file_path=cfg.data.pred_file_path,
+            encoder_name=cfg.data.encoder_name,
+            batch_size=cfg.data.batch_size,
+            train_size=cfg.data.train_size,
+            val_size=cfg.data.val_size,
+            device=cfg.device,
+            random_state=cfg.random_state,
+            num_workers=cfg.data.num_workers,
+            encoder_batch_size=cfg.data.encoder_batch_size,
         )
 
-    model_module = LCFModelModule(model=model, lr=cfg.hyperparameters.lr)
+        if cfg.model.type == 'baseline':
+            model = LogisticRegression(in_features=cfg.in_features, num_classes=cfg.num_classes)
+        elif cfg.model.type == 'deep_mlp':
+            model = DeepMLP(
+                in_features=cfg.in_features,
+                num_classes=cfg.num_classes,
+                hidden_dim=cfg.model.hidden_dim,
+                depth=cfg.model.depth,
+            )
 
-    tb_logger = TensorBoardLogger(save_dir='tensorboard_logs', name=cfg.model.type, log_graph=True)
-    mlflow_logger = MLFlowLogger(
-        tracking_uri=cfg.logging.tracking_uri, experiment_name=cfg.logging.experiment_name
-    )
+        model_module = LCFModelModule(model=model, lr=cfg.hyperparameters.lr)
 
-    trainer = L.Trainer(
-        max_epochs=cfg.hyperparameters.num_epochs, logger=[tb_logger, mlflow_logger]
-    )
-    trainer.fit(model=model_module, datamodule=datamodule)
+        tb_logger = TensorBoardLogger(
+            save_dir='tensorboard_logs', name=cfg.model.type, log_graph=True
+        )
+        mlflow_logger = MLFlowLogger(
+            tracking_uri=cfg.logging.tracking_uri, experiment_name=cfg.logging.experiment_name
+        )
 
-    mlflow_logger.log_hyperparams(
-        params={'num_epochs': cfg.hyperparameters.num_epochs, 'lr': cfg.hyperparameters.lr}
-    )
-    mlflow_logger.log_metrics(metrics=trainer.logged_metrics)
+        trainer = L.Trainer(
+            max_epochs=cfg.hyperparameters.num_epochs, logger=[tb_logger, mlflow_logger]
+        )
+        trainer.fit(model=model_module, datamodule=datamodule)
 
-    torch.save(obj=model_module.model.state_dict(), f=cfg.state_dict_file)
+        mlflow_logger.log_hyperparams(
+            params={'num_epochs': cfg.hyperparameters.num_epochs, 'lr': cfg.hyperparameters.lr}
+        )
+        mlflow_logger.log_metrics(metrics=trainer.logged_metrics)
+
+        outputs_path = Path(cfg.state_dict_file)
+        outputs_path.parent.mkdir(parents=True, exist_ok=True)
+
+        torch.save(obj=model_module.model.state_dict(), f=cfg.state_dict_file)
 
 
 if __name__ == '__main__':
-    train()
+    fire.Fire(component=train)
