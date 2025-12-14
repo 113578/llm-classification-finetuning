@@ -49,7 +49,7 @@
 
 Для работы с проектом необходимо выполнить следующие действия:
 
-1. Выполнить команду `git pull https://github.com/113578/llm-classification-finetuning.git`.
+1. Выполнить команду `git clone https://github.com/113578/llm-classification-finetuning.git`.
 2. Выполнить команду `uv sync`.
 3. Настроить конфигурации в папке `configs/` по вкусу.
 4. При необходимости выполнить команду `export PYTHONPATH=.`.
