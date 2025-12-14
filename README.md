@@ -50,7 +50,7 @@
 Для работы с проектом необходимо выполнить следующие действия:
 
 1. Выполнить команду `git clone https://github.com/113578/llm-classification-finetuning.git`.
-2. Выполнить команду `uv sync`.
+2. Выполнить команды `uv venv` и `uv sync`.
 3. Настроить конфигурации в папке `configs/` по вкусу.
 4. При необходимости выполнить команду `export PYTHONPATH=.`.
 5. Выполнить команду `uv run mlflow server --host 127.0.0.1 --port 8080`.
